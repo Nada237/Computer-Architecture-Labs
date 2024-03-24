@@ -1,12 +1,14 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 ENTITY RegisterFile_tb IS
 END RegisterFile_tb;
 
 ARCHITECTURE RegisterFile_testbench OF RegisterFile_tb IS
 
-    constant CLK_PERIOD : time := 1 ns; 
+    constant CLK_PERIOD : time := 10 ns; 
 
     COMPONENT RegisterFile
         PORT (
@@ -30,6 +32,8 @@ ARCHITECTURE RegisterFile_testbench OF RegisterFile_tb IS
     SIGNAL wrtRegData : STD_LOGIC_VECTOR(31 DOWNTO 0) := (others => '0');
     SIGNAL readReg1Data : STD_LOGIC_VECTOR(31 DOWNTO 0);
     SIGNAL readReg2Data : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    type reg_array is array (0 to 31) of STD_LOGIC_VECTOR(31 downto 0);
+    signal registers : reg_array := (others => (others => '0'));
  
 
    
@@ -54,17 +58,19 @@ BEGIN
 
 	PROCESS
     	BEGIN
-        WAIT FOR CLK_PERIOD; 
+        WAIT FOR 20ns; 
        
         wrtRegAdrs <= "00000"; 
         wrtRegData <= "11110000000000000000000000000000";
 	wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
         WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
 	
         wrtRegAdrs <= "00001"; 
         wrtRegData <= "00001111000000000000000000000000"; 
 	wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
 
@@ -72,6 +78,7 @@ BEGIN
 	wrtRegAdrs <= "00010"; 
         wrtRegData <= "00000000111100000000000000000000"; 
 	wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
 
@@ -79,24 +86,23 @@ BEGIN
 	wrtRegAdrs <= "00011"; 
         wrtRegData <= "00000000000011110000000000000000";
 	wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
-        WAIT;
-    	END PROCESS;
-    
-   PROCESS
-   BEGIN
+
         WAIT FOR CLK_PERIOD; 
         
         wrtRegAdrs <= "00010"; 
         wrtRegData <= "11111111111111111111111111111111" ; 
-        wrtReg <= '1'; 
+        wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData; 
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
         readReg1Adrs <= "00000"; 
         readReg2Adrs <= "00001"; 
         WAIT FOR CLK_PERIOD; 
-        
+        readReg1Data <= registers(conv_integer(readReg1Adrs));
+	readReg2Data <= registers(conv_integer(readReg2Adrs));
         
 	ASSERT readReg1Data = "11110000000000000000000000000000" 
             REPORT "readReg1Data has unexpected data" ;
@@ -106,12 +112,15 @@ BEGIN
         
         wrtRegAdrs <= "00011"; 
         wrtRegData <= "00000000000000000000000000000000"; 
-        wrtReg <= '1'; 
+        wrtReg <= '1';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
         readReg1Adrs <= "00010"; 
         readReg2Adrs <= "00011"; 
-        WAIT FOR CLK_PERIOD; 
+        WAIT FOR CLK_PERIOD;
+	readReg1Data <= registers(conv_integer(readReg1Adrs));
+	readReg2Data <= registers(conv_integer(readReg2Adrs)); 
         
         -- Check outputs
         ASSERT readReg1Data = "11111111111111111111111111111111" 
@@ -122,12 +131,15 @@ BEGIN
         wrtRegAdrs <= "00011"; 
         wrtRegData <= "00000000000000000000000000001111"; 
         wrtReg <= '0';
+	registers(conv_integer(wrtRegAdrs)) <= wrtRegData;
 	WAIT FOR CLK_PERIOD;
 	wrtReg <= '0';
         readReg1Adrs <= "00010"; 
         readReg2Adrs <= "00011"; 
         WAIT FOR CLK_PERIOD; 
-        
+        readReg1Data <= registers(conv_integer(readReg1Adrs));
+	readReg2Data <= registers(conv_integer(readReg2Adrs));
+
         -- Check outputs
         ASSERT readReg1Data = "11111111111111111111111111111111" 
             REPORT "readReg1Data has unexpected data" ;
